@@ -1,7 +1,12 @@
 import java.util.ArrayList;
 import java.util.regex.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-
+/**
+ * 工具类，包含内容提取，格式转换等常用工具
+ * TODO 将常用的正则表达式Pattern 作为类变量实现复用，提高效率f
+ */
 class Tool{
 
     /**
@@ -36,7 +41,10 @@ class Tool{
         String titleRe = "target=\"_blank\" class=\"j_th_tit \">(.*)</a>$?";
         Pattern titlePa = Pattern.compile(titleRe);
 
-        return analysis(homePage, metaMessagePa, titlePa);
+        String userIDRe = "data-field='\\{&quot;user_id&quot;:(\\d*?)\\}'";
+        Pattern userIDPa = Pattern.compile(userIDRe);
+
+        return analysis(homePage, metaMessagePa, titlePa, userIDPa);
 
     }
 
@@ -125,15 +133,36 @@ class Tool{
      * @param  String unicode       含有unic原码的字符串
      * @return        转换完成的正常字符串
      */
-    private static String unicode2Str(String unicode) {
+    static String unicode2Str(String unicode) {
         Pattern re = Pattern.compile("(?<=\\\\u)\\w{4}");
-        Matcher ma = re.matcher(unicode);
+        String str = unicode;
+        Matcher ma = re.matcher(str);
         while(ma.find()){
             String hex = ma.group();//找到第一个Unicode原码
             int data = Integer.parseInt(hex, 16);
-            unicode = unicode.replaceFirst("\\\\u\\w{4}", (char)data + "");//将第一个Unicode原码转码个正常字符
+            str = str.replaceFirst("\\\\u\\w{4}", (char)data + "");//将第一个Unicode原码转码个正常字符
         }
-        return unicode;
+        return str;
+    }
+
+    /**
+     * 将unix时间戳转换为yyyy-MM-dd HH:mm:ss格式时间
+     * @param  String s             Unix时间戳
+     * @return        yyyy-MM-dd HH:mm:ss格式的时间
+     */
+    static String stampToDate(String s){
+        String res;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        long lt = new Long(s);
+        lt = 1000 * lt;//java 时间戳的精度为毫秒级,Unix时间戳的精度为秒级,两者相差1000
+        Date date = new Date(lt);
+        res = simpleDateFormat.format(date);
+        return res;
+    }
+
+    static String getNowTime(){
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return df.format(new Date()) + "";
     }
 
 }
