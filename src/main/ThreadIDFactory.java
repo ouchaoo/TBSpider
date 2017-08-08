@@ -1,8 +1,17 @@
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.lang.Runnable;
 
-class ThreadIDFactory{
+class ThreadIDFactory implements Runnable
+{
+    ConcurrentLinkedQueue taskList;
+    ConcurrentLinkedQueue IDlist;
+    ThreadIDFactory(){
+        taskList = new ConcurrentLinkedQueue();
+        IDlist = new ConcurrentLinkedQueue();
+    }
 
-
+    private void  run(){}
 
     /**
      * 启动器，被主线程调传入要爬取的贴吧名称用而启动
@@ -11,6 +20,10 @@ class ThreadIDFactory{
      * @param  String homePage      贴吧名称
      */
     static void produceID(String tiebaName){
+
+
+
+
         String homePage = PageRequester.getHTML("http://tieba.baidu.com/f?kw=" + tiebaName + "ie=utf-8");
 
         ArrayList<String[]> metaMessage = Tool.analysisThread(homePage);
@@ -35,7 +48,11 @@ class ThreadIDFactory{
      * TODO 对外接口，用于被PostAnalyser调用，返回一组ThreadID 及其贴吧名
      * @return  一组ThreadID 及其贴吧名
      */
-    static ArrayList<String[]> getThreadId(){}
+    static ArrayList<String[]> getThreadId(){
+        ArrayList<String[]> result = new ArrayList<>();
+
+        return result;
+    }
 
     /**
      * 将主题帖（thread）信息传入数据库
@@ -53,7 +70,7 @@ class ThreadIDFactory{
             tmp[2] = thread.get(i)[12];//title
             tmp[3] = thread.get(i)[2];//first_post_id
             tmp[4] = thread.get(i)[13];//user_id
-            tmp[5] = "null";//data
+            tmp[5] = "1900-01-01 00:00:00";//data
             tmp[6] = Tool.getNowTime();//update_time
             tmp[7] = thread.get(i)[4];//is_bakan
             tmp[8] = thread.get(i)[5];//vid

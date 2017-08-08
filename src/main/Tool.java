@@ -165,4 +165,17 @@ class Tool{
 		return df.format(new Date()) + "";
     }
 
+    static String formatSQL(String content){
+        String result = content;
+        Pattern re = Pattern.compile("'");
+        Matcher ma = re.matcher(content);
+        while(ma.find()){
+            System.out.println("找到一个引号");
+            result = result.replaceFirst("'", "\\\\'");
+        }
+
+        return result;
+
+    }
+
 }

@@ -4,10 +4,10 @@ public class Start {
     public static void main(String[] args) throws Exception {
 
         //PostAnalyser.getPost();
-        ThreadIDFactory.produceID("湖南中医药大学");
+        new ThreadIDFactory("湖南中医药大学").produceID();
 
     }
 
 }
 
-//TODO 真正实现将信息传入数据库储存,初步实现多线程协同工作
+//TODO 初步实现多线程协同工作

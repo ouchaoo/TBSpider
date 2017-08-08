@@ -10,8 +10,8 @@ class PostAnalyser{
         String url = "http://tieba.baidu.com/p/5254848189";
         String post = PageRequester.getHTML(url);
 
-        //ArrayList<String[]> postItem = Tool.analysisPost(post);//共26项
-        ArrayList<String[]> commentItem = Tool.analysisComment(post);//共有7项
+        ArrayList<String[]> postItem = Tool.analysisPost(post);//共26项
+        //ArrayList<String[]> commentItem = Tool.analysisComment(post);//共有7项
 
         /*//显示帖子结果
         System.out.println("result.size()" + result.size() + "n" + "result.get(0).length  " + result.get(0).length);
@@ -23,7 +23,8 @@ class PostAnalyser{
         }*/
 
         //storePost(postItem, "湖南中医药大学", "5254848189");
-        storeComment(commentItem, "湖南中医药大学");
+        //storeComment(commentItem, "湖南中医药大学");
+        UserAnalyser.sendTo(postItem);
     }
 
     /**
