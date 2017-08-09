@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.regex.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
+import java.io.*;
 
 /**
  * 工具类，包含内容提取，格式转换等常用工具
@@ -80,6 +82,33 @@ class Tool{
 
 
         return result;
+    }
+
+    /**
+     * 获得某个Threa 的总页数
+     * @param  String post          [description]
+     * @return        [description]
+     */
+    static int getPostPageNum(String post){
+        int pageNum = 1;
+        try{
+            String pageNumRe = "<span class=\"red\">(\\d*?)</span>";
+            Pattern pageNumPa = Pattern.compile(pageNumRe);
+            ArrayList<String[]> tmp =  analysis(post, pageNumPa);
+            pageNum = Integer.parseInt(tmp.get(0)[0]);
+        }
+        catch(IndexOutOfBoundsException e){
+            pageNum = 0;
+            System.out.println("捕获到IndexOutOfBoundsException错误");
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            pageNum = -1;
+        }
+
+
+        return pageNum;
+
     }
 
     /**
@@ -175,6 +204,49 @@ class Tool{
         }
 
         return result;
+
+    }
+
+    static String[] getThreadLog(){
+        String[] log = new String[2];
+        try{
+            Properties props = new Properties();
+            props.load(new FileInputStream("threadLog.ini"));
+
+            String latestThread = props.getProperty("latestThread");
+            String allPageNum = props.getProperty("allPageNum");
+            log = new String[]{latestThread, allPageNum};
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return log;
+    }
+
+    static void setThreadLog(String latestThread){
+        try{
+        Properties props = new Properties();
+        props.load(new FileInputStream("threadLog.ini"));
+        props.setProperty("latestThread", latestThread);
+        props.store(new FileOutputStream("threadLog.ini"), "跟新latestThread");
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    static void setThreadLog(int allPageNum){
+        try{
+            Properties props = new Properties();
+            props.load(new FileInputStream("threadLog.ini"));
+            props.setProperty("allPageNum", allPageNum + "");
+            props.store(new FileOutputStream("threadLog.ini"), "跟新allPageNum");
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
 
     }
 

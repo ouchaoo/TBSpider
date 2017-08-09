@@ -1,17 +1,73 @@
 import java.util.*;
 
-class PostAnalyser{
+class PostAnalyser implements Runnable{
+    ThreadIDFactory thread;
+
+    PostAnalyser(ThreadIDFactory thread){
+        this.thread = thread;
+    }
+
+    public void run(){
+        try{
+            Thread.sleep(10000);
+        }
+        catch(InterruptedException e){
+            e.printStackTrace();
+        }
+
+        System.out.println("帖子内容爬取线程启动");
+        while(true){
+            String[] threadID = thread.getThreadId();
+            if(threadID[0].equals("stop")){
+                break;
+            }
+
+            String url = "http://tieba.baidu.com/p/" + threadID[0];
+            String post = PageRequester.getHTML(url);
+            int pageNum = Tool.getPostPageNum(post);
+            if(pageNum == 0){
+                url = "https://tieba.baidu.com/p/" + threadID[0];//改为https 连接
+                System.out.println("修改后URL为   " + url);
+                post = PageRequester.getHTML(url);
+                pageNum = Tool.getPostPageNum(post);
+            }
+            else if( pageNum < 0){
+                System.out.println("未知错误，跳过thread " + threadID[0]);
+                continue;
+            }
+
+            for(int i = 0; i < pageNum; i++){
+                System.out.println("正在爬取帖子 " + threadID[0] + " 的第 " + (i + 1) + " 页");
+                if(i == 0){
+                    //String post = firstPage;
+                }
+                else{
+                    url = "http://tieba.baidu.com/p/" + threadID[0] + "?pn=" + i;
+                    post = PageRequester.getHTML(url);
+                }
+                System.out.println("开始分析回帖");
+                ArrayList<String[]> postItem = Tool.analysisPost(post);//共26项
+                storePost(postItem, threadID[0], threadID[1]);
+                System.out.println("开始分析评论");
+                ArrayList<String[]> commentItem = Tool.analysisComment(post);//共有7项
+                storeComment(commentItem, threadID[1]);
+                UserAnalyser.sendTo(postItem);
+            }
+
+        }
+
+        System.out.println("本次爬虫任务结束");
+    }
 
     /**
      * 启动器，用于被主进程调用，启动对帖子的爬取，并将爬取的结果传入数据库
      */
-    static void getPost(){
+    void getPost(){
 
-        String url = "http://tieba.baidu.com/p/5254848189";
-        String post = PageRequester.getHTML(url);
 
-        ArrayList<String[]> postItem = Tool.analysisPost(post);//共26项
-        //ArrayList<String[]> commentItem = Tool.analysisComment(post);//共有7项
+
+
+
 
         /*//显示帖子结果
         System.out.println("result.size()" + result.size() + "n" + "result.get(0).length  " + result.get(0).length);
@@ -22,9 +78,7 @@ class PostAnalyser{
             System.out.print(i + 1 + "\n");
         }*/
 
-        //storePost(postItem, "湖南中医药大学", "5254848189");
-        //storeComment(commentItem, "湖南中医药大学");
-        UserAnalyser.sendTo(postItem);
+
     }
 
     /**
@@ -33,7 +87,7 @@ class PostAnalyser{
      * @param String              tieba_name 贴吧名
      * @param String              thread_id  主题帖(thread)ID
      */
-    static void storePost(ArrayList<String[]> postItem, String tieba_name, String thread_id){
+    static void storePost(ArrayList<String[]> postItem, String thread_id, String tieba_name){
         ArrayList<String[]> formatedData = new ArrayList<>();
         String[] tmp = new String[17];
         for(int i = 0; i < postItem.size(); i++){
@@ -88,11 +142,5 @@ class PostAnalyser{
         Database.insertComment(formatedData);
     }
 
-    /**
-     *TODO 将正则表达式在帖子页面提取到的信息传给UserAnalyser，由其自行决定是否要储存到数据库
-     * @param ArrayList<String[]> UserItem   包含用户信息的整个页面的帖子信息
-     * @param String              tieba_name 帖子所在的贴吧
-     */
-    static void sendToUserAnalyer(ArrayList<String[]> UserItem, String tieba_name){}
 
 }

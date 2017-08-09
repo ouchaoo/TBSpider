@@ -9,7 +9,7 @@ class PageRequester {
      * @return        String格式的帖子HTML源码
      */
     static String getHTML(String urlStr){
-        System.out.println("**request html .....");
+        //System.out.println("**request html .....");
         URL url = null;
         String result = "";
         HttpURLConnection conn = null;
@@ -48,7 +48,7 @@ class PageRequester {
                 e2.printStackTrace();
             }
         }
-        System.out.println("**get html!");
+        //System.out.println("**get html!");
         return result;
     }
 }

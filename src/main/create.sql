@@ -68,7 +68,7 @@ CREATE TABLE thread
 (
     tieba_name     CHAR(64)  NOT NULL,
     thread_id      BIGINT    NOT NULL,
-    title          CHAR(64)  NOT NULL,
+    title          CHAR(255)  NOT NULL,
     first_post_id  BIGINT    NOT NULL,
     user_id        BIGINT    NOT NULL,
     data           DATETIME  NULL,
