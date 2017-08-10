@@ -6,20 +6,22 @@ import java.util.*;
 class ThreadIDFactory{
 
     Deque<Integer> taskList;
-    Deque<String> IDlist;
+    ConcurrentLinkedQueue<String> IDlist;
     String tiebaName;
+
     ThreadIDFactory(String tiebaName){
         taskList = new ArrayDeque<Integer>();
         for(int i = 0; i < 5; i++){
             taskList.add(i);
         }
-        IDlist = new ArrayDeque<String>();
+        IDlist = new ConcurrentLinkedQueue<String>();
         this.tiebaName = tiebaName;
     }
 
     /**
-     * 启动器，被主线程调传入要爬取的贴吧名称用而启动
-     * 将帖子的相关信息传入到数据库
+     * 爬取贴吧主页获得 threadID ,
+     * 将帖子的相关信息传入到数据库。
+     * 任务管理中枢，通过磁盘文件记录爬取的进度，实现“断点续爬”
      *
      * @param  String homePage      贴吧名称
      */
@@ -31,12 +33,13 @@ class ThreadIDFactory{
         System.out.println("载入threadLog成功.....");
         int allPageNum = Integer.parseInt(log[1]);
 
-        boolean fresh;//标记本页是否为全新的一页
-        int nowPage;//当前页码减一
+        int nowPage = taskList.peek();//当前页码减一
         boolean latestThreadFlag = true;//标记latestThread是否还可以修改
-        for(int q = 0; q < 5; q++){
+        int target = 103;//目标页数
+
+        while(nowPage < (target - 1) ){
+
             nowPage = taskList.poll();
-            fresh = true;//记录本页是否存在爬过的内容
             String url = "http://tieba.baidu.com/f?kw=" + this.tiebaName + "&ie=utf-8&pn=" +
                 nowPage*50;
             String homePage = PageRequester.getHTML(url);
@@ -46,7 +49,6 @@ class ThreadIDFactory{
 
             ArrayList<String[]> metaMessage = Tool.analysisThread(homePage);
             System.out.println("抓取到新thread页" + metaMessage.size() );
-            System.out.println("当前页" + nowPage);
             for(int j = 0; j < metaMessage.size(); j++){
                 //数据成功存入数据库的帖子
                 if(storeThread(metaMessage.get(j), this.tiebaName)){
@@ -64,29 +66,30 @@ class ThreadIDFactory{
                     taskList.clear();
                     taskList.add(++nowPage);
                     int n = nowPage + Integer.parseInt(log[1]) - 2;
-                    System.out.println("n = " + n);
                     n = n < 0 ? 0 : n;//排除n小于0 的情况
-                    System.out.println("n = " + n);
                     for(int m = 0; m < 5; m++){
                         taskList.add(n++);
                     }
-                    fresh = false;
-                    System.out.println("回到了上次的位置  Integer.parseInt(log[1])=  " + Integer.parseInt(log[1]) );
-                }
-                //普通的已经出现过的帖子
-                else if(metaMessage.get(j)[7] != "true"){
-                    fresh = false;
-                    //System.out.println("老帖");
+                    System.out.println("回到了上次的位置 " );
                 }
 
             }
-            System.out.println("正在爬取第 " + (nowPage + 1) + " 页的帖子.......");
-            if(fresh){
-                allPageNum++;//跟新已爬过的总页数
+            System.out.println("正在爬取主页第 " + (nowPage + 1) + " 页的帖子.......");
+
+            //修改已经爬过的页数
+            if(nowPage > 4){
+                Tool.setThreadLog(nowPage + 1);
             }
+            //填充taskLi
+            if(taskList.size() < 3){
+                int num = taskList.size();
+                taskList.add(taskList.peek() + 1);
+                taskList.add(taskList.peek() + 1);
+            }
+
             //当剩余的threadID 足够时，本线程暂时进入睡眠状态
             while(true){
-                if(IDlist.size() > 20){
+                if(IDlist.size() > 50){
                     try{
                         Thread.sleep(30000);
                     }
@@ -101,7 +104,6 @@ class ThreadIDFactory{
 
         }
 
-        Tool.setThreadLog(allPageNum);
         IDlist.add("stop");
     }
 
@@ -120,7 +122,7 @@ class ThreadIDFactory{
             else{
                 try{
                     System.out.println("IDlist 已经空啦！ 此线程暂时睡眠......");
-                    Thread.sleep(5000);
+                    Thread.sleep(10000);
                 }
                 catch(InterruptedException e){
                     e.printStackTrace();
@@ -160,23 +162,3 @@ class ThreadIDFactory{
         return Database.insertThread(formatedData);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//

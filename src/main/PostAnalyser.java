@@ -3,10 +3,16 @@ import java.util.*;
 class PostAnalyser implements Runnable{
     ThreadIDFactory thread;
 
+    /**
+     * 帖子爬取程序的构造器，传入ThreadIDFactory 对象，用于向其请求 threadID
+     */
     PostAnalyser(ThreadIDFactory thread){
         this.thread = thread;
     }
 
+    /**
+     * 帖子爬取的主题程序，可多线程运行
+     */
     public void run(){
         try{
             Thread.sleep(10000);
@@ -26,29 +32,29 @@ class PostAnalyser implements Runnable{
             String post = PageRequester.getHTML(url);
             int pageNum = Tool.getPostPageNum(post);
             if(pageNum == 0){
-                url = "https://tieba.baidu.com/p/" + threadID[0];//改为https 连接
+                /*url = "https://tieba.baidu.com/p/" + threadID[0];//改为https 连接
                 System.out.println("修改后URL为   " + url);
                 post = PageRequester.getHTML(url);
-                pageNum = Tool.getPostPageNum(post);
+                pageNum = Tool.getPostPageNum(post);*/
+                System.out.println("此贴结构暂未匹配，跳过");
+                continue;
             }
             else if( pageNum < 0){
                 System.out.println("未知错误，跳过thread " + threadID[0]);
                 continue;
             }
 
+            System.out.println("正在爬取帖子 " + threadID[0] + " ,共有 " + pageNum + " 页");
             for(int i = 0; i < pageNum; i++){
-                System.out.println("正在爬取帖子 " + threadID[0] + " 的第 " + (i + 1) + " 页");
                 if(i == 0){
-                    //String post = firstPage;
+                    //帖子第一页，重复利用之前的请求到的结果,不必再重新请求
                 }
                 else{
                     url = "http://tieba.baidu.com/p/" + threadID[0] + "?pn=" + i;
                     post = PageRequester.getHTML(url);
                 }
-                System.out.println("开始分析回帖");
                 ArrayList<String[]> postItem = Tool.analysisPost(post);//共26项
                 storePost(postItem, threadID[0], threadID[1]);
-                System.out.println("开始分析评论");
                 ArrayList<String[]> commentItem = Tool.analysisComment(post);//共有7项
                 storeComment(commentItem, threadID[1]);
                 UserAnalyser.sendTo(postItem);
@@ -59,27 +65,6 @@ class PostAnalyser implements Runnable{
         System.out.println("本次爬虫任务结束");
     }
 
-    /**
-     * 启动器，用于被主进程调用，启动对帖子的爬取，并将爬取的结果传入数据库
-     */
-    void getPost(){
-
-
-
-
-
-
-        /*//显示帖子结果
-        System.out.println("result.size()" + result.size() + "n" + "result.get(0).length  " + result.get(0).length);
-        for(int i = 0; i < result.size(); i++){
-            for(int j = 0; j < result.get(0).length; j++){
-                System.out.println("**floors  " + j + "    " + result.get(i)[j]);
-            }
-            System.out.print(i + 1 + "\n");
-        }*/
-
-
-    }
 
     /**
      * 将通过正则表达式提取到的回帖信息格式化，并传入数据库
