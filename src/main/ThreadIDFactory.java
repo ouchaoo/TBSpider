@@ -27,7 +27,7 @@ class ThreadIDFactory{
      */
     void produceID(){
 
-        new Thread(new PostAnalyser(this)).start();
+        new Thread(new PostAnalyser(this)).start();//复制此语句可增加爬虫线程数
 
         String[] log = Tool.getThreadLog();
         System.out.println("载入threadLog成功.....");
@@ -35,7 +35,7 @@ class ThreadIDFactory{
 
         int nowPage = taskList.peek();//当前页码减一
         boolean latestThreadFlag = true;//标记latestThread是否还可以修改
-        int target = 103;//目标页数
+        int target = 1000;//目标页数
 
         while(nowPage < (target - 1) ){
 

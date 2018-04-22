@@ -3,7 +3,7 @@ public class Start {
 
     public static void main(String[] args) throws Exception {
 
-        new ThreadIDFactory("湖南中医药大学").produceID();
+        new ThreadIDFactory("贴吧名称").produceID();
 
     }
 

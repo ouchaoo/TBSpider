@@ -1,0 +1,7 @@
+#
+*.class
+*.bak
+*.txt
+.classpath
+.project
+*.log
